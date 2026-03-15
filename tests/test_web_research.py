@@ -26,6 +26,6 @@ def test_web_research_returns_results(monkeypatch):
     tool = WebResearchTool()
     result = tool.run("iPhone 16", "US")
 
-    assert result.query == "iPhone 16 market price competitors reviews US"
+    assert result.query == "iPhone 16 vs competitors alternatives similar products US"
     assert len(result.findings) == 1
     assert result.findings[0]["title"] == "Test title"
