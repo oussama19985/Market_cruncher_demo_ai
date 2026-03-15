@@ -22,7 +22,11 @@ tools (search, reasoning, and report generation) to produce a structured
 analysis.
 
 ------------------------------------------------------------------------
+## Demo
 
+Short demo showing the Market Analysis Agent generating a report from a product request.
+
+[![Watch the demo](https://img.youtube.com/vi/9yCRTyMIbcE/maxresdefault.jpg)](https://youtu.be/9yCRTyMIbcE)
 # Architecture
 
 ![System Architecture](architecture.png)
