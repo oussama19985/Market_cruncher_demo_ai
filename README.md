@@ -26,7 +26,7 @@ analysis.
 
 Short demo showing the Market Analysis Agent generating a report from a product request.
 
-[![Watch the demo]([https://img.youtube.com/vi/9yCRTyMIbcE/maxresdefault.jpg)](https://youtu.be/9yCRTyMIbcE](https://youtu.be/4Mgm1vZpHYg))
+[![Watch the demo](https://img.youtube.com/vi/4Mgm1vZpHYg/0.jpg)](https://youtu.be/4Mgm1vZpHYg)
 # Architecture
 
 ![System Architecture](architecture.png)
