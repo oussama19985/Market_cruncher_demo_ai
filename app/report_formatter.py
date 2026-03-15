@@ -10,7 +10,11 @@ def build_markdown_report(
     competitor_chart_filename: str,
     sources: list[str],
 ) -> str:
-    source_lines = "\n".join(f"- {source}" for source in sources) if sources else "- No sources available"
+    source_lines = (
+        "\n".join(f"- {source}" for source in sources)
+        if sources
+        else "- No sources available"
+    )
 
     markdown = f"""# Market Analysis Report
 

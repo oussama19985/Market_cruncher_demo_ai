@@ -7,11 +7,15 @@ class ProductResearchTool:
         key = product_name.strip().lower()
 
         if key not in PRODUCT_PRICE_DATA or market not in PRODUCT_PRICE_DATA[key]:
-            raise ValueError(f"No product research data available for '{product_name}' in market '{market}'")
+            raise ValueError(
+                f"No product research data available for '{product_name}' in market '{market}'"
+            )
 
         raw_competitors = PRODUCT_PRICE_DATA[key][market]
         competitors = [CompetitorPrice(**item) for item in raw_competitors]
-        average_price = round(sum(item.price for item in competitors) / len(competitors), 2)
+        average_price = round(
+            sum(item.price for item in competitors) / len(competitors), 2
+        )
 
         return ProductResearchResult(
             average_price=average_price,

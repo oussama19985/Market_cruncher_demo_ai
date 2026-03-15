@@ -18,8 +18,7 @@ def test_web_research_returns_results(monkeypatch):
             }
 
     monkeypatch.setattr(
-        "app.tools.web_research.requests.post",
-        lambda *args, **kwargs: MockResponse()
+        "app.tools.web_research.requests.post", lambda *args, **kwargs: MockResponse()
     )
 
     monkeypatch.setenv("SERPER_API_KEY", "fake_key")

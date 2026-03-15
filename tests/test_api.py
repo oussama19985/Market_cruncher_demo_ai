@@ -36,9 +36,7 @@ def test_analyze_endpoint_success(monkeypatch):
     }
 
     monkeypatch.setattr(
-        orchestrator,
-        "run",
-        lambda request: type("MockResponse", (), mock_response)()
+        orchestrator, "run", lambda request: type("MockResponse", (), mock_response)()
     )
 
     response = client.post(

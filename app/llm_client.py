@@ -77,7 +77,11 @@ def generate_market_report(
     insights: dict,
     sources: list[str],
 ) -> str:
-    source_list = "\n".join(f"- {source}" for source in sources) if sources else "- No source domains available"
+    source_list = (
+        "\n".join(f"- {source}" for source in sources)
+        if sources
+        else "- No source domains available"
+    )
 
     prompt = f"""
 Write a concise professional market analysis report.
@@ -114,7 +118,10 @@ Rules:
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
-            {"role": "system", "content": "You write professional market research reports."},
+            {
+                "role": "system",
+                "content": "You write professional market research reports.",
+            },
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,

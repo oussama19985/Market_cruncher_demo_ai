@@ -35,14 +35,14 @@ PRODUCT_TRENDS = {
         "US": {
             "price_trend": "stable",
             "demand_trend": "increasing",
-            "seasonality_note": "Demand tends to improve during spring promotions."
+            "seasonality_note": "Demand tends to improve during spring promotions.",
         }
     },
     "iphone 15": {
         "US": {
             "price_trend": "decreasing",
             "demand_trend": "stable",
-            "seasonality_note": "Prices usually soften as newer models approach."
+            "seasonality_note": "Prices usually soften as newer models approach.",
         }
     },
 }
