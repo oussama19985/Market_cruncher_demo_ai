@@ -82,7 +82,7 @@ High level flow:
 
 Main components:
 
-**Planner**\
+**Planner**
 Determines which tools should be executed for a request.
 
 **Orchestrator**\
@@ -109,7 +109,7 @@ Typical execution flow:
 
     User request
        ↓
-    Planner decides which tools to use
+    Planner builds the execution plan
        ↓
     Web search retrieves evidence
        ↓
