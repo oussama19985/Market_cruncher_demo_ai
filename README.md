@@ -193,7 +193,10 @@ Run the container:
 ``` bash
 docker run -p 8000:8000 --env-file .env market-analysis-agent
 ```
-
+for docker storage run this : 
+```bash
+docker run -p 8000:8000 --env-file .env -v "$(pwd)/reports:/app/reports" market-analysis-agent
+```
 Then open:
 
     http://127.0.0.1:8000/docs
