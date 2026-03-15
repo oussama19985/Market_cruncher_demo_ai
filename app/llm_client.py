@@ -7,10 +7,16 @@ from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-)
+
+def _get_client() -> OpenAI:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set")
+
+    return OpenAI(
+        api_key=api_key,
+        base_url="https://api.groq.com/openai/v1",
+    )
 
 
 def extract_market_insights(
@@ -18,6 +24,8 @@ def extract_market_insights(
     region: str,
     research_results: list[dict],
 ) -> dict:
+    client = _get_client()
+
     evidence = "\n".join(
         f"- {item.get('title', '')}: {item.get('snippet', '')}"
         for item in research_results
@@ -46,9 +54,10 @@ Return ONLY valid JSON with this structure:
 
 Rules:
 - Do NOT invent facts
-- If evidence is weak, say so clearly in confidence_note
+- Use only the evidence provided
 - Competitors should be from other companies when possible
 - Avoid listing variants from the same product line as competitors
+- If evidence is weak, say so clearly in confidence_note
 - No markdown
 - No explanation outside the JSON
 """
@@ -77,6 +86,8 @@ def generate_market_report(
     insights: dict,
     sources: list[str],
 ) -> str:
+    client = _get_client()
+
     source_list = (
         "\n".join(f"- {source}" for source in sources)
         if sources
@@ -104,15 +115,10 @@ End the report with a Sources section listing exactly these domains:
 {source_list}
 
 Rules:
-- Do NOT invent facts
-- Use only the evidence provided
-- For key_competitors, infer likely competing products if the evidence clearly presents alternatives, comparisons, "vs" articles, or substitute products
-- Competitors should be products from other brands when possible
-- Avoid listing variants from the same product line as competitors
-- If only weak alternatives are present, return the most plausible competitors mentioned in the evidence
-- If evidence is weak, say so in confidence_note
-- No markdown
-- No explanation outside the JSON
+- Stay grounded in the provided insights
+- Do not invent facts
+- Do not invent sources
+- If confidence is limited, make that clear in the report
 """
 
     response = client.chat.completions.create(
