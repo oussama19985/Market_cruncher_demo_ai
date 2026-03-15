@@ -128,7 +128,6 @@ The API response returns:
 ### Design Decisions: Why a Deterministic Planner?
 
 I chose a native Python orchestrator with a rule-based planner instead of a full LLM-driven router. While an LLM could decide which tools to run, using a deterministic approach here guarantees 100% reliability and zero latency for the core workflow. This keeps the "brain" focused where it’s most needed: extracting insights from messy web data and writing the actual report. It’s a production-first choice—prioritizing a fast, predictable experience while keeping the architecture modular enough to swap in an LLM-based planner later as the agent's responsibilities evolve.
-------------------------------------------------------------------------
 
 # Tech Stack
 
