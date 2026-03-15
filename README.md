@@ -25,13 +25,7 @@ analysis.
 
 # Architecture
 
-```{=html}
-<p align="center">
-```
-`<img src="docs/architecture.png" width="700">`{=html}
-```{=html}
-</p>
-```
+![System Architecture](architecture.png)
 High level flow:
 
     User Request
