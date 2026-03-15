@@ -262,3 +262,281 @@ Some simplifications include:
 
 The goal is to show the **agent orchestration workflow**, not to build a
 full production analytics platform.
+
+
+## 4. Data Architecture and Storage
+
+For a production version of this system, I would keep the storage architecture simple by separating **structured application data** from **generated report artifacts**.
+
+I would use:
+
+- **PostgreSQL** for structured data such as requests, analysis metadata, and agent configurations  
+- **Amazon S3** for storing generated files such as reports and charts  
+
+This approach keeps the system simple while remaining scalable.
+
+### Storing Analysis Results
+
+Each market analysis run would be recorded in PostgreSQL. This allows the system to keep a history of analyses and makes it easy to query past results.
+
+Example table: `analysis_runs`
+
+| Field | Description |
+|------|-------------|
+| analysis_id | Unique identifier for the analysis |
+| product_name | Analyzed product |
+| region | Analyzed region |
+| created_at | Analysis start time |
+| completed_at | Analysis end time |
+| status | Success or failure |
+| summary | Short summary of the analysis |
+| report_json_s3_key | Path to the JSON report stored in S3 |
+| report_md_s3_key | Path to the markdown report stored in S3 |
+| chart_s3_key | Path to the generated chart |
+
+The full report files (JSON, Markdown, and charts) would be stored in **S3**, since they are files rather than structured records.
+
+### Maintaining Request History
+
+To track API usage and help with debugging, each request sent to the API would also be stored in PostgreSQL.
+
+Example table: `analysis_requests`
+
+| Field | Description |
+|------|-------------|
+| request_id | Unique request identifier |
+| analysis_id | Related analysis run |
+| product | Requested product |
+| region | Requested region |
+| requested_at | Timestamp of the request |
+| execution_time_ms | Total execution time |
+| error_message | Error details if the analysis failed |
+
+This allows us to monitor system usage and investigate failures more easily.
+
+### Caching Collected Data
+
+Some data collected during analysis may be reused across multiple runs.
+
+Examples include:
+
+- Search results for the same product and region
+- Previously generated reports
+
+To keep the architecture simple, reusable data could be stored in PostgreSQL with a timestamp and reused if it is still recent. This helps avoid recomputing expensive operations and reduces the number of LLM calls.
+
+### Managing Agent Configuration
+
+Agent configuration should also be stored in the database so that analyses can be reproduced later.
+
+Example table: `agent_configurations`
+
+| Field | Description |
+|------|-------------|
+| config_id | Configuration identifier |
+| version | Configuration version |
+| model_name | LLM model used |
+| temperature | Model temperature |
+| enabled_tools | Tools used by the agent |
+| prompt_version | Prompt template version |
+| created_at | Creation timestamp |
+
+This allows tracking which configuration generated each analysis.
+
+### Storage Summary
+
+**PostgreSQL**
+- Analysis metadata
+- Request history
+- Agent configurations
+- Reusable collected data
+
+**Amazon S3**
+- Generated reports (JSON and Markdown)
+- Charts and visualizations
+
+This design keeps the system simple while allowing it to scale if usage increases.
+
+---
+
+## 5. Monitoring and Observability
+
+Once the system runs in production, monitoring is important to ensure reliability and performance.
+
+### Tracing Agent Execution
+
+Each analysis run should have a unique `analysis_id`.  
+This identifier would appear in logs for every step of the pipeline.
+
+Example execution flow:
+
+1. API request received  
+2. Web research executed  
+3. LLM analysis performed  
+4. Report generated  
+
+Example log entry:
+
+```
+analysis_id=42 step=web_research duration=1.2s status=success
+```
+
+This makes it easy to trace where an error occurred.
+
+### Collecting Performance Metrics
+
+Key metrics to monitor include:
+
+- Number of analyses executed
+- Success and failure rate
+- Average analysis duration
+- Latency per tool
+- LLM response time
+- Token usage
+
+These metrics help identify bottlenecks and performance issues.
+
+### Alerting
+
+Alerts should trigger when abnormal behavior occurs.
+
+Examples:
+
+- Error rate above 5%
+- Analysis latency above 15 seconds
+- Repeated failures from external APIs
+- LLM provider unavailable
+
+Monitoring these conditions helps detect issues quickly.
+
+### Measuring Output Quality
+
+In addition to system health, it is important to evaluate the quality of generated reports.
+
+Possible checks include:
+
+- Validating the JSON structure of the report
+- Verifying that required sections exist
+- Ensuring that the report references retrieved evidence
+
+Over time, an automated **LLM-as-judge** system could also evaluate report quality.
+
+---
+
+## 6. Scaling and Optimization
+
+If the system needs to support many simultaneous analyses, the architecture should separate API handling from heavy processing.
+
+### Handling High Load
+
+Instead of running the entire analysis inside the API process, I would use **Celery** to run analyses asynchronously.
+
+Architecture example:
+
+```
+Client
+  │
+  ▼
+FastAPI API
+  │
+  ▼
+Celery Task Queue
+  │
+  ▼
+Worker Processes
+  │
+  ▼
+LLM + Tools
+```
+
+The API simply creates a job while workers perform the analysis in the background.
+
+This allows the system to scale horizontally by adding more workers.
+
+### Optimizing LLM Costs
+
+LLM calls are typically the most expensive part of the system.
+
+To reduce costs, I would:
+
+- Limit the size of prompts
+- Send only relevant search snippets
+- Avoid repeated analysis for identical requests
+- Reuse previous analysis results when possible
+
+Using retrieved evidence before prompting the model also improves accuracy and reduces hallucinations.
+
+### Intelligent Caching
+
+To improve performance, the system can reuse recent analysis results.
+
+For example, if a report for the same product and region was generated recently, the system could reuse the existing analysis instead of recomputing it.
+
+This reduces both latency and LLM usage.
+
+### Parallelizing Analysis Tasks
+
+Some analysis steps are independent and can run in parallel.
+
+Examples include:
+
+- Web research
+- Sentiment extraction
+- Trend detection
+
+Running these tasks concurrently can significantly reduce total analysis time.
+
+---
+
+## 7. Continuous Improvement and A/B Testing
+
+Once deployed, the system should evolve based on evaluation and user feedback.
+
+### Evaluating Analysis Quality (LLM as Judge)
+
+A secondary LLM can evaluate reports using criteria such as:
+
+- Relevance
+- Clarity
+- Completeness
+- Grounding in retrieved evidence
+
+This produces a quality score that can be tracked over time.
+
+### Comparing Prompt Strategies
+
+Prompts can be versioned and tested against each other.
+
+Example:
+
+```
+prompt_v1
+prompt_v2
+prompt_v3
+```
+
+Each analysis run records which prompt version was used, allowing comparisons of quality, latency, and cost.
+
+### User Feedback Loop
+
+Users should be able to provide feedback on generated reports.
+
+Example feedback:
+
+- Helpful / Not helpful
+- Rating from 1 to 5
+- Optional comments
+
+This feedback can help improve prompts and agent behavior.
+
+### Evolving Agent Capabilities
+
+Because the system uses a modular tool architecture, new tools can easily be added.
+
+Possible future improvements include:
+
+- Price comparison tools
+- Additional data sources
+- Improved recommendation generation
+
+This modular design allows the system to evolve without redesigning the entire architecture.
